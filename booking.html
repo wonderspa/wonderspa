@@ -72,11 +72,13 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </div>
 
 <header class="bg-surface shadow-sm flex flex-col justify-center items-center pt-8 pb-6 px-4">
-<img src="https://i.postimg.cc/ZYvTKGkY/Wonder-SPA-LOGO.png" alt="WONDER WANDER" class="h-32 w-auto object-contain">
-<div class="text-center mt-5">
-<h1 class="text-sm font-bold tracking-[0.4em] text-dark/80">ONLINE BOOKING</h1>
-<div class="h-px w-10 bg-accent mx-auto mt-2 opacity-50"></div>
-</div>
+  <a href="https://www.wonderspa.tw/" target="_blank" title="返回 WonderSpa 官網" class="inline-block hover:opacity-80 transition-opacity duration-200 cursor-pointer">
+    <img src="https://i.postimg.cc/ZYvTKGkY/Wonder-SPA-LOGO.png" alt="WONDER WANDER" class="h-32 w-auto object-contain">
+  </a>
+  <div class="text-center mt-5">
+    <h1 class="text-sm font-bold tracking-[0.4em] text-dark/80">ONLINE BOOKING</h1>
+    <div class="h-px w-10 bg-accent mx-auto mt-2 opacity-50"></div>
+  </div>
 </header>
 
 <main class="px-7 py-6 w-full max-w-[420px] mx-auto space-y-6">
@@ -150,7 +152,7 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 
 <div class="bg-surface p-6 rounded-[1.5rem] shadow-soft space-y-5 w-full relative border border-secondary/10">
 <div id="initOverlay" class="absolute inset-0 bg-surface/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-[1.5rem]">
-<div class="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2"></div><span class="text-xs text-dark/70 tracking-widest font-bold">  系統連線中...   </span>
+<div class="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2"></div><span class="text-xs text-dark/70 tracking-widest font-bold">  系統連線中...    </span>
 </div>
 <h2 class="text-xs font-bold tracking-widest border-b border-secondary/10 pb-3 flex items-center justify-between">
 <span><i class="fas fa-calendar-alt mr-2 text-accent"></i>  預約安排 SCHEDULE  </span>
@@ -332,7 +334,7 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </main>
 
 <script>
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzH95axgpO5ftPAK9FRlT9CfHGH48uZo2bVs16qbzpyLByOZrgbAmtmyj5d6Ij4BnV4Zg/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwIGY8L774iM-U50uniLROYu_2I-T-osoV6xOYVk99CaQZt6kMRJmgnBhWhxvS35A5r/exec";
 
 let globalServices = []; let globalSlots = []; let globalBookings = []; let staffMap = {}; let globalWalletPlans = [];
 let currentDate = new Date(); let selectedDateCell = null; let selectedTimeBtn = null; let selectedMasterBtn = null;
@@ -705,11 +707,6 @@ function selectDate(element, dateStr) {
   const nowTimestamp = now.getTime();
   const todayFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   
-  let leadTimeLimitMinutes = 0; 
-  try {
-    // 串接後端拋出的設定參數
-  } catch(e){}
-
   let validSlots = []; timeMasterMap = {};
 
   if (bookingMode === 'master') {
@@ -717,15 +714,12 @@ function selectDate(element, dateStr) {
     const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time);
     validSlots = mySlots.filter(slotTime => {
       
-      // 🛑【選師傅模式：精準阻擋 60/90 分鐘臨近預約防線】
       if (dateStr === todayFormatted) {
         let cleanDateStr = dateStr.replace(/-/g, '/');
         let slotDateTime = new Date(cleanDateStr + ' ' + slotTime);
         if (!isNaN(slotDateTime.getTime())) {
-          // 1. 過去的時間按鈕直接過濾
           if (slotDateTime.getTime() <= nowTimestamp) return false;
           
-          // 2. 超強效防線：距離目前時間不足 60 分鐘，前台直接砍掉！
           let currentLimit = window.leadTimeLimitMinutes || 60; 
           let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60);
           if (timeDiffMinutes < currentLimit) return false;
@@ -735,7 +729,7 @@ function selectDate(element, dateStr) {
       let reqStart = timeToMinutes(slotTime); let reqEnd = reqStart + requiredDuration;
       for (let min = reqStart; min < reqEnd; min += 10) {
         let overlapCount = 0; let masterBusy = false;
-        for (let i = 0; i < bookedIntervals.length; i++) { if (min >= bookedIntervals[i].start && min < bookedIntervals[i].end) { overlapCount++; if (bookedIntervals[i].teacher === master) masterBusy = true; } }
+        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } }
         if (overlapCount >= MAX_ROOMS || masterBusy) return false;
       }
       return true;
@@ -747,15 +741,12 @@ function selectDate(element, dateStr) {
     allSlotsToday.forEach(slot => {
       if(!validMastersForService.includes(slot.master) && !validMastersForService.includes('共用')) return;
       
-      // 🛑【看空檔模式：精準阻擋 60/90 分鐘臨近預約防線】
       if (dateStr === todayFormatted) {
         let cleanDateStr = dateStr.replace(/-/g, '/');
         let slotDateTime = new Date(cleanDateStr + ' ' + slot.time);
         if (!isNaN(slotDateTime.getTime())) {
-          // 1. 過去的時間按鈕直接過濾
           if (slotDateTime.getTime() <= nowTimestamp) return;
           
-          // 2. 距離目前時間不足 60 分鐘，直接蒸發！
           let currentLimit = window.leadTimeLimitMinutes || 60; 
           let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60);
           if (timeDiffMinutes < currentLimit) return;
@@ -765,7 +756,7 @@ function selectDate(element, dateStr) {
       let reqStart = timeToMinutes(slot.time); let reqEnd = reqStart + requiredDuration; let isValid = true;
       for (let min = reqStart; min < reqEnd; min += 10) {
         let overlapCount = 0; let masterBusy = false;
-        for (let i = 0; i < bookedIntervals.length; i++) { if (min >= bookedIntervals[i].start && min < bookedIntervals[i].end) { overlapCount++; if (bookedIntervals[i].teacher === slot.master) masterBusy = true; } }
+        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[i].start && min < bookedIntervals[i].end) { overlapCount++; if (bookedIntervals[i].teacher === slot.master) masterBusy = true; } }
         if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; }
       }
       if (isValid) { if(!timeMasterMap[slot.time]) timeMasterMap[slot.time] = []; if(!timeMasterMap[slot.time].includes(slot.master)) timeMasterMap[slot.time].push(slot.master); }
@@ -840,9 +831,35 @@ function submitForm() {
     postToGAS('processBooking', formData)
       .then(response => {
         if(response.success) {
-          if (response.walletFullyPaid || response.isRemittance) {
+          if (response.walletFullyPaid) {
             window.location.href = response.scriptUrl + "?page=success";
-          } else {
+          } 
+          else if (response.isRemittance || payWay === 'REMIT') {
+            resetSubmitBtn();
+            Swal.fire({
+              title: '🎉 預約成功！時段已為您鎖定',
+              html: `<div class="bg-[#F5EBE1] p-4 rounded-xl text-left text-xs text-dark space-y-2 border border-accent/20">
+                      <p class="font-bold text-accent text-sm text-center mb-1"><i class="fas fa-university"></i> 請於 30 分鐘內完成匯款</p>
+                      <p class="h-px bg-secondary/20 my-1"></p>
+                      <p><b>🏦 銀行：</b>國泰世華銀行 (013)</p>
+                      <p><b>🔢 帳號：</b><span class="font-mono font-bold text-sm tracking-wide text-dark select-all">0565-0605-4643</span></p>
+                      <p><b>💰 應付金額：</b><b class="text-red-600 text-sm">NT$ ${response.finalPrice || formData.originalPrice}</b></p>
+                     </div>
+                     <p class="text-[11px] text-red-600 font-bold mt-3 leading-relaxed text-left">
+                      💡 貼心提示：匯款完成後，請至頁面最上方點擊【查詢帶入】您的歷史紀錄，並按下【回報轉帳後五碼】按鈕，管理團隊核對後將立刻為您確立預約！
+                     </p>`,
+              icon: 'success',
+              confirmButtonColor: '#7E6B5A',
+              confirmButtonText: '我已記下匯款資訊',
+              allowOutsideClick: false
+            }).then(() => {
+              if(typeof fetchCustomerProfile === "function" && formData.userPhone) {
+                document.getElementById('userPhoneInput').value = formData.userPhone;
+                fetchCustomerProfile();
+              }
+            });
+          } 
+          else {
             const div = document.createElement('div');
             div.id = 'ecpayFormContainer';
             div.style.display = 'none'; 
@@ -851,16 +868,23 @@ function submitForm() {
             
             const ecpayForm = document.getElementById('ecpayForm');
             if(ecpayForm) {
-              const paymentWindow = window.open('', '_blank');
-              if (paymentWindow) {
-                ecpayForm.target = '_blank';
-                ecpayForm.submit();
-              }
-              
+              ecpayForm.target = '_self'; 
               btn.disabled = false;
               btn.classList.remove('is-processing', 'opacity-50', 'cursor-not-allowed', 'bg-dark');
-              btn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all tracking-wider text-sm flex items-center justify-center animate-pulse cursor-pointer w-full sm:w-auto";
-              btn.innerHTML = '⚠️ 沒跳出綠界？請點此前往支付 <i class="fas fa-external-link-alt ml-2"></i>';
+              btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all tracking-wider text-sm flex items-center justify-center cursor-pointer w-full sm:w-auto";
+              btn.innerHTML = '<i class="fas fa-lock mr-2 animate-bounce"></i> 正在安全跳轉至綠界，請稍候...';
+
+              Swal.fire({
+                title: '🎉 預約時段已成功鎖定！',
+                html: `系統正在為您啟動綠界安全支付通道...<br><br><span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 貼心提示：結帳完成後，請務必點擊【返回商店】以便系統為您發送 LINE 入場指引喔！</span>`,
+                icon: 'success',
+                confirmButtonColor: '#7E6B5A',
+                confirmButtonText: '前往刷卡付款',
+                timer: 2500,
+                timerProgressBar: true
+              }).then(() => {
+                ecpayForm.submit();
+              });
               
               btn.onclick = function(e) {
                 e.preventDefault();
@@ -870,29 +894,18 @@ function submitForm() {
                   retryForm.submit();
                 }
               };
-
-              Swal.fire({
-                title: '🎉 預約時段已鎖定！',
-                html: `我們正嘗試開啟綠界安全支付分頁...<br><br>
-                       <span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 若您的手機「卡住轉圈」或「沒有彈出刷卡畫面」，請立刻點擊下方按鈕：<br><b>【⚠️ 沒跳出綠界？請點此前往支付】</b> 完成付款喔！</span>`,
-                icon: 'success',
-                confirmButtonColor: '#7E6B5A',
-                confirmButtonText: '我知道了'
-              });
-
             } else {
               alert('找不到金流表單，但訂單可能已建立，請聯繫客服。');
               resetSubmitBtn();
             }
           }
-
         } else {
           alert('處理訂單失敗：' + response.message);
           resetSubmitBtn();
         }
       })
       .catch(err => {
-        alert('伺服器連線過載，請稍後重試：' + err.toString());
+        alert('系統連線異常，請重新嘗試：' + err.toString());
         resetSubmitBtn();
       });
   } catch (e) {
@@ -910,21 +923,55 @@ function resetSubmitBtn() {
 }
 
 window.repayOrder = function(event, orderId) {
-  event.preventDefault(); const btn = event.currentTarget; const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 連結金流中...'; btn.disabled = true; btn.classList.add('opacity-70');
+  event.preventDefault(); 
+  const btn = event.currentTarget; 
+  const originalText = btn.innerHTML;
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 連結金流中...'; 
+  btn.disabled = true; 
+  btn.classList.add('opacity-70');
   
   fetchFromGAS('getPaymentFormForExistingOrder', { orderId: orderId })
     .then(response => {
       if(response.success) {
-        const div = document.createElement('div'); div.innerHTML = response.html; document.body.appendChild(div);
+        const div = document.createElement('div'); 
+        div.innerHTML = response.html; 
+        document.body.appendChild(div);
+        
         const ecpayForm = document.getElementById('ecpayForm');
-        if(ecpayForm) ecpayForm.submit(); 
-        else { alert('找不到表單'); btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); }
-      } else { alert('重啟付款失敗：' + response.message); btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); }
+        if(ecpayForm) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-70');
+          btn.className = "mt-1 w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-green-700 transition-all shadow-sm flex justify-center items-center gap-1.5 tracking-widest border border-green-600";
+          btn.innerHTML = '<i class="fas fa-lock mr-1 animate-bounce"></i> 正在安全跳轉至安全刷卡頁面...';
+
+          Swal.fire({
+            title: '🎉 付款通道已打通！',
+            html: `系統正在為您啟動綠界安全支付通道...<br><br><span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 貼心提示：結帳完成後，請務必點擊【返回商店】喔！</span>`,
+            icon: 'success',
+            confirmButtonColor: '#7E6B5A',
+            confirmButtonText: '前往刷卡付款',
+            timer: 2000,
+            timerProgressBar: true
+          }).then(() => {
+            ecpayForm.target = '_self'; 
+            ecpayForm.submit();
+          });
+        } else { 
+          alert('找不到金流表單，請聯繫客服協助。'); 
+          btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
+        }
+      } else { 
+        alert('重啟付款失敗：' + response.message); 
+        btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
+      }
     })
-    .catch(() => { btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); });
+    .catch(err => { 
+      alert('連線逾時，請重試：' + err.toString());
+      btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
+    });
 };
+
 </script>
 </body>
 </html>
-
