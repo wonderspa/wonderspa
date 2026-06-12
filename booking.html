@@ -312,10 +312,12 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </div>
 
 <div class="mt-4 pt-3 border-t border-dashed border-secondary/20 text-center">
-<button type="button" onclick="const p = document.getElementById('userPhoneInput') ? document.getElementById('userPhoneInput').value : ''; window.open('https://wonderspa.github.io/wonderspa/pay_portal.html?phone=' + encodeURIComponent(p), '_blank')" class="inline-flex items-center gap-1.5 justify-center w-full py-2.5 bg-inputbg hover:bg-secondary/10 border border-accent/30 rounded-xl text-dark hover:text-accent text-[11px] font-bold tracking-widest transition-all duration-300 shadow-sm">
-<i class="fas fa-shield-alt text-accent text-[10px]"></i>  預約卡住轉圈圈？點我進入「獨立安全補付通道」
+<button type="button" onclick="const p = document.getElementById('userPhoneInput') ? document.getElementById('userPhoneInput').value : ''; window.open('https://wonderspa.github.io/wonderspa/backend_pay_hub.html?phone=' + encodeURIComponent(p), '_blank')" class="inline-flex items-center gap-1.5 justify-center w-full py-2.5 bg-inputbg hover:bg-secondary/10 border border-accent/30 rounded-xl text-dark hover:text-accent text-[11px] font-bold tracking-widest transition-all duration-300 shadow-sm">
+<i class="fas fa-shield-alt text-accent text-[10px]"></i>  官方安全補付與對帳通道
 </button>
+<p class="text-[9px] text-dark/40 font-bold mt-1 tracking-wide">※ 系統將自動為您調取尚未完款的預約單</p>
 </div>
+
 
 <div class="mt-4 p-3 bg-red-50/80 border border-red-100/60 rounded-xl text-left w-full box-border">
 <p class="text-[12.5px] text-red-800 font-bold leading-relaxed tracking-wide flex items-center gap-1">
@@ -972,5 +974,6 @@ window.repayOrder = function(event, orderId) {
 </script>
 </body>
 </html>
+
 
 
