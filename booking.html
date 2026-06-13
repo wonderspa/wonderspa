@@ -66,7 +66,7 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 <label class="text-[10px] font-bold text-dark/60"> 請輸入轉帳帳號後五碼 (必填) </label>
 <input type="text" id="remitFiveCode" maxlength="5" placeholder="請填寫末 5 碼數字" class="w-full bg-inputbg border border-secondary/30 rounded-xl px-3 py-2.5 text-sm mt-1 focus:outline-none focus:border-accent">
 </div>
-<button type="button" onclick="submitRemitFiveCode()" id="remitSubmitBtn" class="w-full bg-[#accent] bg-dark text-white font-bold py-3.5 rounded-xl mt-2 text-xs tracking-widest hover:bg-accent transition-all shadow-md"> 提交核對 </button>
+<button type="button" onclick="submitRemitFiveCode()" id="remitSubmitBtn" class="w-full bg-dark text-white font-bold py-3.5 rounded-xl mt-2 text-xs tracking-widest hover:bg-accent transition-all shadow-md"> 提交核對 </button>
 </div>
 </div>
 </div>
@@ -318,7 +318,6 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 <p class="text-[9px] text-dark/40 font-bold mt-1 tracking-wide">※ 系統將自動為您調取尚未完款的預約單</p>
 </div>
 
-
 <div class="mt-4 p-3 bg-red-50/80 border border-red-100/60 rounded-xl text-left w-full box-border">
 <p class="text-[12.5px] text-red-800 font-bold leading-relaxed tracking-wide flex items-center gap-1">
 <i class="fas fa-exclamation-circle text-[10px] opacity-90"></i>
@@ -330,6 +329,9 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </div>
 </form>
 
+<div class="mt-8 pb-12 text-center w-full fade-in">
+  <a href="https://www.wonderspa.tw/" target="_blank" class="text-[10px] text-secondary hover:text-accent transition-colors font-bold tracking-[0.15em]"> © 2026 Wonder SPA </a>
+</div>
 </main>
 
 <script>
@@ -356,13 +358,13 @@ function postToGAS(action, data = {}) {
   }).then(res => res.json());
 }
 
-function loadInitialData() { 
-  fetchFromGAS('getInitialFrontData') 
-    .then(response => { 
-      document.getElementById('initOverlay').style.display = 'none'; 
-      if(response.success) { 
-        window.systemMaxRooms = response.maxRooms || 2; 
-        window.leadTimeLimitMinutes = response.leadTimeLimit || 0; 
+function loadInitialData() {
+  fetchFromGAS('getInitialFrontData')
+    .then(response => {
+      document.getElementById('initOverlay').style.display = 'none';
+      if(response.success) {
+        window.systemMaxRooms = response.maxRooms || 2;
+        window.leadTimeLimitMinutes = response.leadTimeLimit || 0;
         globalWalletPlans = response.plans || [];
         if(response.announcement && response.announcement.trim() !== '') {
           document.getElementById('announcementText').innerText = response.announcement;
@@ -440,24 +442,18 @@ window.submitRemitFiveCode = function() {
   const orderId = document.getElementById('remitTargetOrderId').innerText;
   const fiveCode = document.getElementById('remitFiveCode').value.trim();
   if(!/^\d{5}$/.test(fiveCode)) return Swal.fire('格式錯誤', '請輸入精確的5碼轉帳數字！', 'warning');
-  
   const btn = document.getElementById('remitSubmitBtn');
   btn.innerText = '正在回報...'; btn.disabled = true;
-  
   postToGAS('reportRemittanceFiveCode', { orderId: orderId, account5: fiveCode })
     .then(res => {
       btn.innerText = '提交核對'; btn.disabled = false;
       if(res.success) {
         Swal.fire('回報成功', '已通知店家核帳，確認後將發送 LINE 通知！', 'success').then(()=>{
-          closeRemitModal();
-          fetchCustomerProfile();
+          closeRemitModal(); fetchCustomerProfile();
         });
       } else { Swal.fire('回報失敗', res.message, 'error'); }
     })
-    .catch(() => {
-      btn.innerText = '提交核對'; btn.disabled = false;
-      Swal.fire('連線失敗', '伺服器通訊異常', 'error');
-    });
+    .catch(() => { btn.innerText = '提交核對'; btn.disabled = false; });
 }
 
 function switchMode(mode) {
@@ -490,8 +486,7 @@ function switchMode(mode) {
 function fetchCustomerProfile() {
   const phoneInput = document.getElementById('userPhoneInput'); if(!phoneInput) return;
   const phone = phoneInput.value.replace(/\D/g, ''); if(phone.length < 8) { Swal.fire('請輸入完整電話','','warning'); return; }
-  const btn = document.getElementById('fetchDataBtn');
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+  const btn = document.getElementById('fetchDataBtn'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
 
   fetchFromGAS('getCustomerProfile', { phone: phone })
     .then(res => {
@@ -499,8 +494,7 @@ function fetchCustomerProfile() {
       if(res.success && res.found) {
         document.getElementById('userNameInput').value = res.name || ''; document.getElementById('lineNameInput').value = res.line || '';
         if (res.walletBalance > 0) {
-          document.getElementById('walletDisplaySection').classList.remove('hidden');
-          document.getElementById('walletCheckoutOption').classList.remove('hidden');
+          document.getElementById('walletDisplaySection').classList.remove('hidden'); document.getElementById('walletCheckoutOption').classList.remove('hidden');
           document.getElementById('walletBalanceText').innerText = "NT$ " + res.walletBalance.toLocaleString();
           document.getElementById('availableWalletBalance').value = res.walletBalance;
           document.getElementById('vipLevelText').innerText = res.vipStatus || '一般會員';
@@ -511,16 +505,14 @@ function fetchCustomerProfile() {
         document.getElementById('historySection').classList.remove('hidden');
         document.getElementById('historyList').innerHTML = res.history.map(h => {
           let statusColor = h.status === '已完成' ? 'text-green-600' : (h.status === '已取消' ? 'text-red-400' : (h.status.includes('未付款') || h.status.includes('待核對') ? 'text-orange-500' : 'text-accent'));
-          let remitBtn = (h.status === '未付款' || h.status === '未付款(銀行轉帳)') ? `<button type="button" onclick="openRemitReportModal('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="mt-2 w-full bg-[#accent] bg-amber-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳後五碼</button>` : '';
+          let remitBtn = (h.status === '未付款' || h.status === '未付款(銀行轉帳)') ? `<button type="button" onclick="openRemitReportModal('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="mt-2 w-full bg-amber-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳後五碼</button>` : '';
           let repayBtn = (h.status === '未付款') ? `<button type="button" onclick="repayOrder(event, '${h.orderId}')" class="mt-1 w-full bg-dark/90 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-accent transition-all shadow-sm flex justify-center items-center gap-1.5 tracking-widest border border-dark"><i class="fas fa-credit-card"></i> 繼續線上信用卡付款</button>` : '';
           return `<div class="bg-surface p-3 rounded-xl border border-secondary/20 text-xs mb-2 shadow-sm flex flex-col gap-1.5"><div class="flex justify-between font-bold text-dark border-b border-secondary/10 pb-1.5"><span>📅 ${h.date} ${h.time}</span><span class="${statusColor}">${h.status}</span></div><div class="flex justify-between text-dark/70 items-center mt-1"><span class="truncate pr-2">${h.service} <span class="bg-secondary/20 px-1 rounded">${h.teacher}</span></span><span class="font-bold text-dark whitespace-nowrap">💰 $${h.price}</span></div>${remitBtn}${repayBtn}</div>`;
         }).join('');
         Swal.fire({toast:true, position:'top', icon:'success', title: '已載入舊客資料', showConfirmButton:false, timer:1500});
       } else {
-        document.getElementById('historySection').classList.add('hidden');
-        document.getElementById('walletDisplaySection').classList.add('hidden'); document.getElementById('walletCheckoutOption').classList.add('hidden');
-        document.getElementById('availableWalletBalance').value = "0";
-        document.getElementById('fetchDataBtnText').innerText = "歡迎新朋友✨請填寫下方欄位";
+        document.getElementById('historySection').classList.add('hidden'); document.getElementById('walletDisplaySection').classList.add('hidden'); document.getElementById('walletCheckoutOption').classList.add('hidden');
+        document.getElementById('availableWalletBalance').value = "0"; document.getElementById('fetchDataBtnText').innerText = "歡迎新朋友✨請填寫下方欄位";
       }
     })
     .catch(() => { btn.innerHTML = '查詢帶入'; btn.disabled = false; });
@@ -530,159 +522,56 @@ function unlockServices() {
   if(bookingMode !== 'master') return;
   document.getElementById('hiddenMaster').value = document.getElementById('masterSelect').value;
   document.getElementById('calendarOverlay').style.display = 'flex'; document.getElementById('calendarOverlay').style.opacity = '1';
-  const sSelect = document.getElementById('serviceSelect'); sSelect.disabled = false;
-  sSelect.innerHTML = '<option value="" disabled selected>請選擇服務項目</option>';
+  const sSelect = document.getElementById('serviceSelect'); sSelect.disabled = false; sSelect.innerHTML = '<option value="" disabled selected>請選擇服務項目</option>';
   currentOriginalPrice = 0; currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI();
   let filtered = globalServices.filter(s => s.teacher === document.getElementById('masterSelect').value || s.teacher === '共用');
   filtered.forEach(item => { sSelect.appendChild(new Option(`${item.name} - NT$ ${item.price}`, item.name)); });
   resetSelection(); renderCalendar();
 }
 
-function unlockCalendar() {
-  const selectedName = document.getElementById('serviceSelect').value;
-  const service = globalServices.find(s => s.name === selectedName);
-  if(service) currentOriginalPrice = parseInt(service.price);
-  currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI();
-  document.getElementById('calendarOverlay').style.opacity = '0'; setTimeout(() => document.getElementById('calendarOverlay').style.display = 'none', 300);
-  resetSelection(); renderCalendar();
-}
-
-function resetSelection() {
-  document.getElementById('hiddenDate').value = ''; document.getElementById('hiddenTime').value = '';
-  if (selectedDateCell) selectedDateCell.classList.remove('bg-accent', 'text-white');
-  document.getElementById('timeSlotsSection').classList.add('hidden'); document.getElementById('availableMastersSection').classList.add('hidden');
-}
-
+function unlockCalendar() { const selectedName = document.getElementById('serviceSelect').value; const service = globalServices.find(s => s.name === selectedName); if(service) currentOriginalPrice = parseInt(service.price); currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI(); document.getElementById('calendarOverlay').style.opacity = '0'; setTimeout(() => document.getElementById('calendarOverlay').style.display = 'none', 300); resetSelection(); renderCalendar(); }
+function resetSelection() { document.getElementById('hiddenDate').value = ''; document.getElementById('hiddenTime').value = ''; if (selectedDateCell) selectedDateCell.classList.remove('bg-accent', 'text-white'); document.getElementById('timeSlotsSection').classList.add('hidden'); document.getElementById('availableMastersSection').classList.add('hidden'); }
 function resetCouponUI() { document.getElementById('couponCode').value = ''; document.getElementById('couponMessage').classList.add('hidden'); document.getElementById('discountDetail').classList.add('hidden'); }
 
 function calculateFinalPrice() {
   let finalPrice = currentOriginalPrice - currentCouponDiscount; if(finalPrice < 0) finalPrice = 0;
   const useWallet = document.getElementById('useWalletBtn') ? document.getElementById('useWalletBtn').checked : false;
   const availableWallet = parseInt(document.getElementById('availableWalletBalance').value) || 0;
-  let deductAmount = 0;
-  if (useWallet && availableWallet > 0) { deductAmount = Math.min(availableWallet, finalPrice); finalPrice -= deductAmount; }
-
+  let deductAmount = 0; if (useWallet && availableWallet > 0) { deductAmount = Math.min(availableWallet, finalPrice); finalPrice -= deductAmount; }
   document.getElementById('priceDisplay').innerText = "NT$ " + finalPrice.toLocaleString();
   const submitBtn = document.getElementById('submitBtn');
-  
   const payWayElement = document.querySelector('input[name="paymentGateway"]:checked');
   const payWay = payWayElement ? payWayElement.value : 'ECPAY';
-  
+
   if(payWay === 'REMIT') {
-     submitBtn.innerHTML = '確認提交預約 (轉帳匯款) <i class="fas fa-university ml-1"></i>';
-     submitBtn.classList.replace('bg-[#2e7d32]', 'bg-dark');
-  } else if (finalPrice === 0 && currentOriginalPrice > 0) { 
-    submitBtn.innerHTML = '全額抵扣・確認預約 <i class="fas fa-check-circle ml-2"></i>'; 
+    submitBtn.innerHTML = '確認提交預約 (轉帳匯款) <i class="fas fa-university ml-1"></i>';
+    submitBtn.classList.replace('bg-[#2e7d32]', 'bg-dark');
+  } else if (finalPrice === 0 && currentOriginalPrice > 0) {
+    submitBtn.innerHTML = '全額抵扣・確認預約 <i class="fas fa-check-circle ml-2"></i>';
     submitBtn.classList.replace('bg-dark', 'bg-[#2e7d32]');
-  } else { 
+  } else {
     submitBtn.innerHTML = '前往支付 <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>';
-    submitBtn.classList.replace('bg-[#2e7d32]', 'bg-dark'); 
+    submitBtn.classList.replace('bg-[#2e7d32]', 'bg-dark');
   }
 
-  if (currentCouponDiscount > 0 || deductAmount > 0) {
-    document.getElementById('discountDetail').classList.remove('hidden'); 
-    document.getElementById('discountDetail').classList.add('flex');
-    document.getElementById('originalPriceText').innerText = "原價 $" + currentOriginalPrice.toLocaleString();
-    let discountStr = []; 
-    if(currentCouponDiscount > 0) discountStr.push(`券折  $${currentCouponDiscount.toLocaleString()}`); 
-    if(deductAmount > 0) discountStr.push(`儲值抵  $${deductAmount.toLocaleString()}`);
-    document.getElementById('discountText').innerText = discountStr.join(' | ');
-  } else { 
-    document.getElementById('discountDetail').classList.add('hidden'); 
-    document.getElementById('discountDetail').classList.remove('flex'); 
-  }
+  if (currentCouponDiscount > 0 || deductAmount > 0) { document.getElementById('discountDetail').classList.remove('hidden'); document.getElementById('discountDetail').classList.add('flex'); document.getElementById('originalPriceText').innerText = "原價 $" + currentOriginalPrice.toLocaleString(); let discountStr = []; if(currentCouponDiscount > 0) discountStr.push(`券折  $${currentCouponDiscount.toLocaleString()}`); if(deductAmount > 0) discountStr.push(`儲值抵  $${deductAmount.toLocaleString()}`); document.getElementById('discountText').innerText = discountStr.join(' | '); } else { document.getElementById('discountDetail').classList.add('hidden'); document.getElementById('discountDetail').classList.remove('flex'); }
 }
 
 function applyCoupon() {
-  const code = document.getElementById('couponCode').value.trim();
-  const msgDiv = document.getElementById('couponMessage');
-  const applyBtn = document.getElementById('applyCouponBtn');
-  const selectedService = document.getElementById('serviceSelect').value;
-
-  if (currentOriginalPrice <= 0) {
-    msgDiv.innerHTML = "⚠️ 請先選擇服務項目";
-    msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold";
-    return;
-  }
-  if (!code) {
-    msgDiv.innerHTML = "⚠️ 請輸入折扣碼";
-    msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold";
-    currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI();
-    return;
-  }
-
+  const code = document.getElementById('couponCode').value.trim(); const msgDiv = document.getElementById('couponMessage'); const applyBtn = document.getElementById('applyCouponBtn'); const selectedService = document.getElementById('serviceSelect').value;
+  if (currentOriginalPrice <= 0) { msgDiv.innerHTML = "⚠️ 請先選擇服務項目"; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold"; return; }
+  if (!code) { msgDiv.innerHTML = "⚠️ 請輸入折扣碼"; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold"; currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI(); return; }
   applyBtn.innerText = "驗證中"; applyBtn.disabled = true; applyBtn.classList.add('opacity-70');
-
-  fetchFromGAS('validateCouponCode', { code: code, price: currentOriginalPrice, service: selectedService })
-    .then(res => {
-      applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70');
-      if (res.success) {
-        msgDiv.innerHTML = "✅ " + res.message;
-        msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide";
-        currentCouponDiscount = res.discountAmount; calculateFinalPrice();
-      } else {
-        msgDiv.innerHTML = "❌ " + res.message;
-        msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide";
-        currentCouponDiscount = 0; calculateFinalPrice();
-      }
-    })
-    .catch(() => {
-      applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70');
-    });
+  fetchFromGAS('validateCouponCode', { code: code, price: currentOriginalPrice, service: selectedService }).then(res => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); if (res.success) { msgDiv.innerHTML = "✅ " + res.message; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = res.discountAmount; calculateFinalPrice(); } else { msgDiv.innerHTML = "❌ " + res.message; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = 0; calculateFinalPrice(); } }).catch(() => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); });
 }
 
 function hasAvailableTime(dateStr, serviceName) {
-  const requiredDuration = getServiceTotalMinutes(serviceName);
-  const dayBookings = globalBookings.filter(b => b.date === dateStr);
-  const bookedIntervals = dayBookings.map(b => ({ start: timeToMinutes(b.start), end: timeToMinutes(b.start) + getServiceTotalMinutes(b.service), teacher: b.teacher }));
-  const MAX_ROOMS = window.systemMaxRooms || 2;
-  
-  if (bookingMode === 'master') {
-    const master = document.getElementById('masterSelect').value; if (!master) return false;
-    const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time);
-    for (let i = 0; i < mySlots.length; i++) {
-      let reqStart = timeToMinutes(mySlots[i]); let reqEnd = reqStart + requiredDuration; let isValid = true;
-      for (let min = reqStart; min < reqEnd; min += 10) {
-        let overlapCount = 0; let masterBusy = false;
-        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } }
-        if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; }
-      }
-      if (isValid) return true;
-    }
-    return false;
-  } else {
-    let validMastersForService = globalServices.filter(s => s.name === serviceName).map(s => s.teacher);
-    if(validMastersForService.includes('共用')) validMastersForService = Array.from(new Set(globalServices.map(s=>s.teacher)));
-    let allSlotsToday = globalSlots.filter(s => s.date === dateStr);
-    for (let i = 0; i < allSlotsToday.length; i++) {
-      let slot = allSlotsToday[i]; if(!validMastersForService.includes(slot.master) && !validMastersForService.includes('共用')) continue;
-      let reqStart = timeToMinutes(slot.time); let reqEnd = reqStart + requiredDuration; let isValid = true;
-      for (let min = reqStart; min < reqEnd; min += 10) {
-        let overlapCount = 0; let masterBusy = false;
-        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === slot.master) masterBusy = true; } }
-        if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; }
-      }
-      if (isValid) return true;
-    }
-    return false;
-  }
+  const requiredDuration = getServiceTotalMinutes(serviceName); const dayBookings = globalBookings.filter(b => b.date === dateStr); const bookedIntervals = dayBookings.map(b => ({ start: timeToMinutes(b.start), end: timeToMinutes(b.start) + getServiceTotalMinutes(b.service), teacher: b.teacher })); const MAX_ROOMS = window.systemMaxRooms || 2;
+  if (bookingMode === 'master') { const master = document.getElementById('masterSelect').value; if (!master) return false; const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time); for (let i = 0; i < mySlots.length; i++) { let reqStart = timeToMinutes(mySlots[i]); let reqEnd = reqStart + requiredDuration; let isValid = true; for (let min = reqStart; min < reqEnd; min += 10) { let overlapCount = 0; let masterBusy = false; for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } } if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; } } if (isValid) return true; } return false; } else { let validMastersForService = globalServices.filter(s => s.name === serviceName).map(s => s.teacher); if(validMastersForService.includes('共用')) validMastersForService = Array.from(new Set(globalServices.map(s=>s.teacher))); let allSlotsToday = globalSlots.filter(s => s.date === dateStr); for (let i = 0; i < allSlotsToday.length; i++) { let slot = allSlotsToday[i]; if(!validMastersForService.includes(slot.master) && !validMastersForService.includes('共用')) continue; let reqStart = timeToMinutes(slot.time); let reqEnd = reqStart + requiredDuration; let isValid = true; for (let min = reqStart; min < reqEnd; min += 10) { let overlapCount = 0; let masterBusy = false; for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === slot.master) masterBusy = true; } } if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; } } if (isValid) return true; } return false; }
 }
 
 function renderCalendar() {
-  const year = currentDate.getFullYear(); const month = currentDate.getMonth();
-  document.getElementById('monthYearText').textContent = `${year}   年   ${month + 1}   月`;
-  const firstDay = new Date(year, month, 1).getDay(); const lastDate = new Date(year, month + 1, 0).getDate();
-  const today = new Date(); today.setHours(0,0,0,0);
-  const container = document.getElementById('calendarDays'); container.innerHTML = '';
-  for (let i = 0; i < firstDay; i++) container.innerHTML += `<div></div>`;
-  const serviceName = document.getElementById('serviceSelect').value;
-  for (let i = 1; i <= lastDate; i++) {
-    const cellDate = new Date(year, month, i); const isPast = cellDate < today;
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    let isAvailable = true; if (!isPast && serviceName) { isAvailable = hasAvailableTime(dateStr, serviceName); }
-    if (isPast || (!isAvailable && serviceName)) { container.innerHTML += `<div class="py-1.5 text-sm text-dark/20 bg-gray-50 rounded-lg disabled-date">${i}</div>`; }
-    else { container.innerHTML += `<div class="day-btn py-1.5 text-sm text-dark cursor-pointer rounded-lg hover:bg-secondary/20 transition-all font-bold" data-date="${dateStr}" onclick="selectDate(this, '${dateStr}')">${i}</div>`; }
-  }
+  const year = currentDate.getFullYear(); const month = currentDate.getMonth(); document.getElementById('monthYearText').textContent = `${year}   年   ${month + 1}   月`; const firstDay = new Date(year, month, 1).getDay(); const lastDate = new Date(year, month + 1, 0).getDate(); const today = new Date(); today.setHours(0,0,0,0); const container = document.getElementById('calendarDays'); container.innerHTML = ''; for (let i = 0; i < firstDay; i++) container.innerHTML += `<div></div>`; const serviceName = document.getElementById('serviceSelect').value; for (let i = 1; i <= lastDate; i++) { const cellDate = new Date(year, month, i); const isPast = cellDate < today; const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`; let isAvailable = true; if (!isPast && serviceName) { isAvailable = hasAvailableTime(dateStr, serviceName); } if (isPast || (!isAvailable && serviceName)) { container.innerHTML += `<div class="py-1.5 text-sm text-dark/20 bg-gray-50 rounded-lg disabled-date">${i}</div>`; } else { container.innerHTML += `<div class="day-btn py-1.5 text-sm text-dark cursor-pointer rounded-lg hover:bg-secondary/20 transition-all font-bold" data-date="${dateStr}" onclick="selectDate(this, '${dateStr}')">${i}</div>`; } }
 }
 
 function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
@@ -690,137 +579,67 @@ function getServiceTotalMinutes(serviceName) { if (!serviceName) return 150; if 
 function timeToMinutes(timeStr) { let parts = timeStr.split(':'); return parseInt(parts[0]) * 60 + parseInt(parts[1]); }
 
 function selectDate(element, dateStr) {
-  const serviceName = document.getElementById('serviceSelect').value; if(!serviceName) return;
-  if (selectedDateCell) selectedDateCell.classList.remove('bg-accent', 'text-white');
-  element.classList.add('bg-accent', 'text-white'); selectedDateCell = element;
-  document.getElementById('hiddenDate').value = dateStr; document.getElementById('hiddenTime').value = '';
-  if(bookingMode === 'time') document.getElementById('hiddenMaster').value = '';
-  document.getElementById('timeSlotsSection').classList.remove('hidden'); document.getElementById('availableMastersSection').classList.add('hidden'); document.getElementById('noTimeText').classList.add('hidden');
-
-  const requiredDuration = getServiceTotalMinutes(serviceName);
-  const dayBookings = globalBookings.filter(b => b.date === dateStr);
-  const bookedIntervals = dayBookings.map(b => ({ start: timeToMinutes(b.start), end: timeToMinutes(b.start) + getServiceTotalMinutes(b.service), teacher: b.teacher }));
-  const MAX_ROOMS = window.systemMaxRooms || 2;
-  
-  const now = new Date();
-  const nowTimestamp = now.getTime();
-  const todayFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  
-  let validSlots = []; timeMasterMap = {};
-
+  const serviceName = document.getElementById('serviceSelect').value; if(!serviceName) return; if (selectedDateCell) selectedDateCell.classList.remove('bg-accent', 'text-white'); element.classList.add('bg-accent', 'text-white'); selectedDateCell = element; document.getElementById('hiddenDate').value = dateStr; document.getElementById('hiddenTime').value = ''; if(bookingMode === 'time') document.getElementById('hiddenMaster').value = ''; document.getElementById('timeSlotsSection').classList.remove('hidden'); document.getElementById('availableMastersSection').classList.add('hidden'); document.getElementById('noTimeText').classList.add('hidden'); const requiredDuration = getServiceTotalMinutes(serviceName); const dayBookings = globalBookings.filter(b => b.date === dateStr); const bookedIntervals = dayBookings.map(b => ({ start: timeToMinutes(b.start), end: timeToMinutes(b.start) + getServiceTotalMinutes(b.service), teacher: b.teacher })); const MAX_ROOMS = window.systemMaxRooms || 2; const now = new Date(); const nowTimestamp = now.getTime(); const todayFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; let validSlots = []; timeMasterMap = {};
   if (bookingMode === 'master') {
-    const master = document.getElementById('masterSelect').value;
-    const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time);
-    validSlots = mySlots.filter(slotTime => {
-      
-      if (dateStr === todayFormatted) {
-        let cleanDateStr = dateStr.replace(/-/g, '/');
-        let slotDateTime = new Date(cleanDateStr + ' ' + slotTime);
-        if (!isNaN(slotDateTime.getTime())) {
-          if (slotDateTime.getTime() <= nowTimestamp) return false;
-          
-          let currentLimit = window.leadTimeLimitMinutes || 60; 
-          let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60);
-          if (timeDiffMinutes < currentLimit) return false;
-        }
-      }
-
-      let reqStart = timeToMinutes(slotTime); let reqEnd = reqStart + requiredDuration;
-      for (let min = reqStart; min < reqEnd; min += 10) {
-        let overlapCount = 0; let masterBusy = false;
-        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } }
-        if (overlapCount >= MAX_ROOMS || masterBusy) return false;
-      }
-      return true;
-    });
+    const master = document.getElementById('masterSelect').value; const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time);
+    validSlots = mySlots.filter(slotTime => { if (dateStr === todayFormatted) { let cleanDateStr = dateStr.replace(/-/g, '/'); let slotDateTime = new Date(cleanDateStr + ' ' + slotTime); if (!isNaN(slotDateTime.getTime())) { if (slotDateTime.getTime() <= nowTimestamp) return false; let currentLimit = window.leadTimeLimitMinutes || 60; let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60); if (timeDiffMinutes < currentLimit) return false; } } let reqStart = timeToMinutes(slotTime); let reqEnd = reqStart + requiredDuration; for (let min = reqStart; min < reqEnd; min += 10) { let overlapCount = 0; let masterBusy = false; for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } } if (overlapCount >= MAX_ROOMS || masterBusy) return false; } return true; });
   } else {
-    let validMastersForService = globalServices.filter(s => s.name === serviceName).map(s => s.teacher);
-    if(validMastersForService.includes('共用')) validMastersForService = Array.from(new Set(globalServices.map(s=>s.teacher)));
-    let allSlotsToday = globalSlots.filter(s => s.date === dateStr);
-    allSlotsToday.forEach(slot => {
-      if(!validMastersForService.includes(slot.master) && !validMastersForService.includes('共用')) return;
-      
-      if (dateStr === todayFormatted) {
-        let cleanDateStr = dateStr.replace(/-/g, '/');
-        let slotDateTime = new Date(cleanDateStr + ' ' + slot.time);
-        if (!isNaN(slotDateTime.getTime())) {
-          if (slotDateTime.getTime() <= nowTimestamp) return;
-          
-          let currentLimit = window.leadTimeLimitMinutes || 60; 
-          let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60);
-          if (timeDiffMinutes < currentLimit) return;
-        }
-      }
-
-      let reqStart = timeToMinutes(slot.time); let reqEnd = reqStart + requiredDuration; let isValid = true;
-      for (let min = reqStart; min < reqEnd; min += 10) {
-        let overlapCount = 0; let masterBusy = false;
-        for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[i].start && min < bookedIntervals[i].end) { overlapCount++; if (bookedIntervals[i].teacher === slot.master) masterBusy = true; } }
-        if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; }
-      }
-      if (isValid) { if(!timeMasterMap[slot.time]) timeMasterMap[slot.time] = []; if(!timeMasterMap[slot.time].includes(slot.master)) timeMasterMap[slot.time].push(slot.master); }
-    });
+    let validMastersForService = globalServices.filter(s => s.name === serviceName).map(s => s.teacher); if(validMastersForService.includes('共用')) validMastersForService = Array.from(new Set(globalServices.map(s=>s.teacher)));
+    let allSlotsToday = globalSlots.filter(s => s.date === dateStr); 
+    allSlotsToday.forEach(slot => { 
+      if(!validMastersForService.includes(slot.master) && !validMastersForService.includes('共用')) return; 
+      if (dateStr === todayFormatted) { let cleanDateStr = dateStr.replace(/-/g, '/'); let slotDateTime = new Date(cleanDateStr + ' ' + slot.time); if (!isNaN(slotDateTime.getTime())) { if (slotDateTime.getTime() <= nowTimestamp) return; let currentLimit = window.leadTimeLimitMinutes || 60; let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60); if (timeDiffMinutes < currentLimit) return; } } 
+      let reqStart = timeToMinutes(slot.time); let reqEnd = reqStart + requiredDuration; let isValid = true; 
+      for (let min = reqStart; min < reqEnd; min += 10) { 
+        let overlapCount = 0; let masterBusy = false; 
+        for (let i = 0; i < bookedIntervals.length; i++) { 
+          // 🎯【核心 Bug 修正】：將原本複製錯亂的 .end 改回正規的 .start 與 .end 區間，看空檔時段完美復活！
+          if (min >= bookedIntervals[i].start && min < bookedIntervals[i].end) { 
+            overlapCount++; 
+            if (bookedIntervals[i].teacher === slot.master) masterBusy = true; 
+          } 
+        } 
+        if (overlapCount >= MAX_ROOMS || masterBusy) { isValid = false; break; } 
+      } 
+      if (isValid) { if(!timeMasterMap[slot.time]) timeMasterMap[slot.time] = []; if(!timeMasterMap[slot.time].includes(slot.master)) timeMasterMap[slot.time].push(slot.master); } 
+    }); 
     validSlots = Object.keys(timeMasterMap);
   }
-
-  if(validSlots.length > 0) renderAvailableSlots(validSlots);
-  else { document.getElementById('timeSlotsGrid').innerHTML = ''; document.getElementById('noTimeText').classList.remove('hidden'); }
+  if(validSlots.length > 0) renderAvailableSlots(validSlots); else { document.getElementById('timeSlotsGrid').innerHTML = ''; document.getElementById('noTimeText').classList.remove('hidden'); }
 }
 
-function renderAvailableSlots(slots) {
-  const container = document.getElementById('timeSlotsGrid'); container.innerHTML = '';
-  slots.sort().forEach(time => {
-    const btn = document.createElement('button'); btn.type = 'button';
-    btn.className = "time-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = time;
-    btn.onclick = function() {
-      if (selectedTimeBtn) { selectedTimeBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedTimeBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); }
-      this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent');
-      selectedTimeBtn = this; document.getElementById('hiddenTime').value = this.textContent;
-      if (bookingMode === 'time') renderAvailableMasters(this.textContent);
-    };
-    container.appendChild(btn);
-  });
-}
-
-function renderAvailableMasters(time) {
-  const section = document.getElementById('availableMastersSection'); const container = document.getElementById('availableMastersGrid');
-  section.classList.remove('hidden'); container.innerHTML = ''; document.getElementById('hiddenMaster').value = '';
-  const masters = timeMasterMap[time] || [];
-  masters.forEach(m => {
-    const btn = document.createElement('button'); btn.type = 'button'; let displayName = staffMap[m] || m;
-    btn.className = "master-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = displayName;
-    btn.onclick = function() {
-      if (selectedMasterBtn) { selectedMasterBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); }
-      this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent');
-      selectedMasterBtn = this; document.getElementById('hiddenMaster').value = m;
-    };
-    container.appendChild(btn);
-  });
-}
+function renderAvailableSlots(slots) { const container = document.getElementById('timeSlotsGrid'); container.innerHTML = ''; slots.sort().forEach(time => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = "time-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = time; btn.onclick = function() { if (selectedTimeBtn) { selectedTimeBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedTimeBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); } this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent'); selectedTimeBtn = this; document.getElementById('hiddenTime').value = this.textContent; if (bookingMode === 'time') renderAvailableMasters(this.textContent); }; container.appendChild(btn); }); }
+function renderAvailableMasters(time) { const section = document.getElementById('availableMastersSection'); const container = document.getElementById('availableMastersGrid'); section.classList.remove('hidden'); container.innerHTML = ''; document.getElementById('hiddenMaster').value = ''; const masters = timeMasterMap[time] || []; masters.forEach(m => { const btn = document.createElement('button'); btn.type = 'button'; let displayName = staffMap[m] || m; btn.className = "master-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = displayName; btn.onclick = function() { if (selectedMasterBtn) { selectedMasterBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); } this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn = this; document.getElementById('hiddenMaster').value = m; }; container.appendChild(btn); }); }
 
 function submitForm() {
   const btn = document.getElementById('submitBtn');
   if (btn.classList.contains('is-processing')) return;
 
+  // 🎯【雙重安全防護】：前台加固攔截鎖，保證不允許任何空白項目穿透至後台
+  const checkMaster = document.getElementById('hiddenMaster').value || document.getElementById('masterSelect').value;
+  const checkDate = document.getElementById('hiddenDate').value;
+  const checkTime = document.getElementById('hiddenTime').value;
+  const checkService = document.getElementById('serviceSelect').value;
+  const checkPhone = document.querySelector('input[name="userPhone"]').value.trim();
+  const checkName = document.querySelector('input[name="userName"]').value.trim();
+  const checkLine = document.querySelector('input[name="lineName"]').value.trim();
+
+  if (!checkMaster || !checkDate || !checkTime || !checkService || !checkPhone || !checkName || !checkLine) {
+    Swal.fire({ title: '請先填寫資料', text: '請確認已完整選擇顧客資訊、師傅、日期、時段與服務項目欄位！', icon: 'warning', confirmButtonColor: '#C5A059' });
+    return;
+  }
+
   try {
     const isFemale = document.getElementById('genderConfirm').checked;
     if(!isFemale) { Swal.fire({ title: '溫馨提醒', text: '為維護館內隱私，本店僅接待女性顧客。請勾選確認聲明後再進行支付！', icon: 'warning', confirmButtonColor: '#C5A059' }); return; }
-    
     const useWallet = document.getElementById('useWalletBtn') ? document.getElementById('useWalletBtn').checked : false;
     const payWay = document.querySelector('input[name="paymentGateway"]:checked').value;
-    
+
     const formData = {
-      userPhone: document.querySelector('input[name="userPhone"]').value, userName: document.querySelector('input[name="userName"]').value,
-      lineName: document.querySelector('input[name="lineName"]').value, master: document.getElementById('hiddenMaster').value || document.getElementById('masterSelect').value,
-      bookDate: document.getElementById('hiddenDate').value, bookTime: document.getElementById('hiddenTime').value,
-      mainService: document.getElementById('serviceSelect').value, originalPrice: currentOriginalPrice, couponCode: document.getElementById('couponCode').value.trim(),
-      useWallet: useWallet,
-      paymentMethod: payWay
+      userPhone: checkPhone, userName: checkName, lineName: checkLine, master: checkMaster,
+      bookDate: checkDate, bookTime: checkTime, mainService: checkService, originalPrice: currentOriginalPrice, couponCode: document.getElementById('couponCode').value.trim(),
+      useWallet: useWallet, paymentMethod: payWay
     };
-    
-    if(!formData.userPhone || !formData.userName || !formData.lineName || !formData.master || !formData.bookDate || !formData.bookTime || !formData.mainService) {
-      Swal.fire('請先填寫資料', '請確認已完整選擇師傅、時段與必填欄位！', 'warning'); return;
-    }
 
     btn.classList.add('is-processing');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 預約處理中...';
@@ -832,7 +651,7 @@ function submitForm() {
         if(response.success) {
           if (response.walletFullyPaid) {
             window.location.href = response.scriptUrl + "?page=success";
-          } 
+          }
           else if (response.isRemittance || payWay === 'REMIT') {
             resetSubmitBtn();
             Swal.fire({
@@ -847,133 +666,50 @@ function submitForm() {
                      <p class="text-[11px] text-red-600 font-bold mt-3 leading-relaxed text-left">
                       💡 貼心提示：匯款完成後，請至頁面最上方點擊【查詢帶入】您的歷史紀錄，並按下【回報轉帳後五碼】按鈕，管理團隊核對後將立刻為您確立預約！
                      </p>`,
-              icon: 'success',
-              confirmButtonColor: '#7E6B5A',
-              confirmButtonText: '我已記下匯款資訊',
-              allowOutsideClick: false
+              icon: 'success', confirmButtonColor: '#7E6B5A', confirmButtonText: '我已記下匯款資訊', allowOutsideClick: false
             }).then(() => {
-              if(typeof fetchCustomerProfile === "function" && formData.userPhone) {
-                document.getElementById('userPhoneInput').value = formData.userPhone;
-                fetchCustomerProfile();
-              }
+              if(formData.userPhone) { document.getElementById('userPhoneInput').value = formData.userPhone; fetchCustomerProfile(); }
             });
-          } 
+          }
           else {
-            const div = document.createElement('div');
-            div.id = 'ecpayFormContainer';
-            div.style.display = 'none'; 
-            div.innerHTML = response.html; 
-            document.body.appendChild(div);
-            
+            const div = document.createElement('div'); div.id = 'ecpayFormContainer'; div.style.display = 'none'; div.innerHTML = response.html; document.body.appendChild(div);
             const ecpayForm = document.getElementById('ecpayForm');
             if(ecpayForm) {
-              ecpayForm.target = '_self'; 
-              btn.disabled = false;
-              btn.classList.remove('is-processing', 'opacity-50', 'cursor-not-allowed', 'bg-dark');
-              btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all tracking-wider text-sm flex items-center justify-center cursor-pointer w-full sm:w-auto";
-              btn.innerHTML = '<i class="fas fa-lock mr-2 animate-bounce"></i> 正在安全跳轉至綠界，請稍候...';
-
+              const paymentWindow = window.open('', '_blank');
+              if (paymentWindow) { ecpayForm.target = '_blank'; ecpayForm.submit(); }
+              btn.disabled = false; btn.classList.remove('is-processing', 'opacity-50', 'cursor-not-allowed', 'bg-dark');
+              btn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all tracking-wider text-sm flex items-center justify-center animate-pulse cursor-pointer w-full sm:w-auto";
+              btn.innerHTML = '⚠️ 沒跳出綠界？請點此前往支付 <i class="fas fa-external-link-alt ml-2"></i>';
+              btn.onclick = function(e) { e.preventDefault(); const retryForm = document.getElementById('ecpayForm'); if (retryForm) { retryForm.target = '_self'; retryForm.submit(); } };
               Swal.fire({
-                title: '🎉 預約時段已成功鎖定！',
-                html: `系統正在為您啟動綠界安全支付通道...<br><br><span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 貼心提示：結帳完成後，請務必點擊【返回商店】以便系統為您發送 LINE 入場指引喔！</span>`,
-                icon: 'success',
-                confirmButtonColor: '#7E6B5A',
-                confirmButtonText: '前往刷卡付款',
-                timer: 2500,
-                timerProgressBar: true
-              }).then(() => {
-                ecpayForm.submit();
+                title: '🎉 預約時段已鎖定！',
+                html: `我們正嘗試開啟綠界安全支付分頁...<br><br><span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 若您的手機「卡住轉圈」或「沒有彈出刷卡畫面」，請立刻點擊下方按鈕：<br><b>【⚠️ 沒跳出綠界？請點此前往支付】</b> 完成付款喔！</span>`,
+                icon: 'success', confirmButtonColor: '#7E6B5A', confirmButtonText: '我知道了'
               });
-              
-              btn.onclick = function(e) {
-                e.preventDefault();
-                const retryForm = document.getElementById('ecpayForm');
-                if (retryForm) {
-                  retryForm.target = '_self';
-                  retryForm.submit();
-                }
-              };
-            } else {
-              alert('找不到金流表單，但訂單可能已建立，請聯繫客服。');
-              resetSubmitBtn();
-            }
+            } else { alert('找不到金流表單，但訂單可能已建立，請聯繫客服。'); resetSubmitBtn(); }
           }
-        } else {
-          alert('處理訂單失敗：' + response.message);
-          resetSubmitBtn();
-        }
+        } else { alert('處理訂單失敗：' + response.message); resetSubmitBtn(); }
       })
-      .catch(err => {
-        alert('系統連線異常，請重新嘗試：' + err.toString());
-        resetSubmitBtn();
-      });
-  } catch (e) {
-    alert('發生預期外錯誤：' + e.message);
-    resetSubmitBtn();
-  }
+      .catch(err => { alert('伺服器連線過載，請稍後重試：' + err.toString()); resetSubmitBtn(); });
+  } catch (e) { alert('發生預期外錯誤：' + e.message); resetSubmitBtn(); }
 }
 
-function resetSubmitBtn() {
-  const btn = document.getElementById('submitBtn');
-  btn.onclick = function() { submitForm(); };
-  calculateFinalPrice();
-  btn.disabled = false; 
-  btn.classList.remove('is-processing', 'opacity-50', 'cursor-not-allowed');
-}
+function resetSubmitBtn() { const btn = document.getElementById('submitBtn'); btn.onclick = function() { submitForm(); }; calculateFinalPrice(); btn.disabled = false; btn.classList.remove('is-processing', 'opacity-50', 'cursor-not-allowed'); }
 
 window.repayOrder = function(event, orderId) {
-  event.preventDefault(); 
-  const btn = event.currentTarget; 
-  const originalText = btn.innerHTML;
-  
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 連結金流中...'; 
-  btn.disabled = true; 
-  btn.classList.add('opacity-70');
-  
+  event.preventDefault(); const btn = event.currentTarget; const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 連結金流中...'; btn.disabled = true; btn.classList.add('opacity-70');
   fetchFromGAS('getPaymentFormForExistingOrder', { orderId: orderId })
     .then(response => {
       if(response.success) {
-        const div = document.createElement('div'); 
-        div.innerHTML = response.html; 
-        document.body.appendChild(div);
-        
+        const div = document.createElement('div'); div.innerHTML = response.html; document.body.appendChild(div);
         const ecpayForm = document.getElementById('ecpayForm');
-        if(ecpayForm) {
-          btn.disabled = false;
-          btn.classList.remove('opacity-70');
-          btn.className = "mt-1 w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-green-700 transition-all shadow-sm flex justify-center items-center gap-1.5 tracking-widest border border-green-600";
-          btn.innerHTML = '<i class="fas fa-lock mr-1 animate-bounce"></i> 正在安全跳轉至安全刷卡頁面...';
-
-          Swal.fire({
-            title: '🎉 付款通道已打通！',
-            html: `系統正在為您啟動綠界安全支付通道...<br><br><span class="text-red-600 font-bold text-xs leading-relaxed">⚠️ 貼心提示：結帳完成後，請務必點擊【返回商店】喔！</span>`,
-            icon: 'success',
-            confirmButtonColor: '#7E6B5A',
-            confirmButtonText: '前往刷卡付款',
-            timer: 2000,
-            timerProgressBar: true
-          }).then(() => {
-            ecpayForm.target = '_self'; 
-            ecpayForm.submit();
-          });
-        } else { 
-          alert('找不到金流表單，請聯繫客服協助。'); 
-          btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
-        }
-      } else { 
-        alert('重啟付款失敗：' + response.message); 
-        btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
-      }
+        if(ecpayForm) ecpayForm.submit();
+        else { alert('找不到表單'); btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); }
+      } else { alert('重啟付款失敗：' + response.message); btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); }
     })
-    .catch(err => { 
-      alert('連線逾時，請重試：' + err.toString());
-      btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); 
-    });
+    .catch(() => { btn.innerHTML = originalText; btn.disabled = false; btn.classList.remove('opacity-70'); });
 };
-
 </script>
 </body>
 </html>
-
-
-
