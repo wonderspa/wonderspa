@@ -540,9 +540,7 @@ function renderAvailableSlots(slots) { const container = document.getElementById
 function renderAvailableMasters(time) { const section = document.getElementById('availableMastersSection'); const container = document.getElementById('availableMastersGrid'); section.classList.remove('hidden'); container.innerHTML = ''; document.getElementById('hiddenMaster').value = ''; const masters = timeMasterMap[time] || []; masters.forEach(m => { const btn = document.createElement('button'); btn.type = 'button'; let displayName = staffMap[m] || m; btn.className = "master-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = displayName; btn.onclick = function() { if (selectedMasterBtn) { selectedMasterBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); } this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.github = this.classList.add('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn = this; document.getElementById('hiddenMaster').value = m; }; container.appendChild(btn); }); }
 
 // 🚀【純導流核心改裝】：完成鎖位登記後，不跳轉綠界，100% 直發 SweetAlert 導流至官方 LINE 領取付款通道！
-function submitForm() {
-  const btn = document.getElementById('submitBtn');
-  if (btn.classList.contains('is-processing')) return;
+function submitForm() { const btn = document.getElementById('submitBtn'); if (btn.classList.contains('is-processing')) return; // 🎯【終極攔截鎖】：精準阻擋空白欄位，徹底根除後台亂抓師傅的惡夢 const checkMaster = document.getElementById('hiddenMaster').value || document.getElementById('masterSelect').value; const checkDate = document.getElementById('hiddenDate').value; const checkTime = document.getElementById('hiddenTime').value; const checkService = document.getElementById('serviceSelect').value; const checkPhone = document.querySelector('input[name="userPhone"]').value.trim(); const checkName = document.querySelector('input[name="userName"]').value.trim(); const checkLine = document.querySelector('input[name="lineName"]').value.trim(); // 只要有任何一個核心欄位是空的，立刻噴出圖二的 SweetAlert 並 return 阻斷 if (!checkMaster || !checkDate || !checkTime || !checkService || !checkPhone || !checkName || !checkLine) { Swal.fire({ title: '請先填寫資料', text: '請確認已完整選擇顧客資訊、師傅、日期、時段與服務項目欄位！', icon: 'warning', confirmButtonColor: '#C5A059' }); return; // 👈 關鍵：直接攔截，絕不允許傳送給後台 GAS }
 
   try {
     const isFemale = document.getElementById('genderConfirm').checked;
@@ -622,3 +620,4 @@ function resetSubmitBtn() {
 </script>
 </body>
 </html>
+
