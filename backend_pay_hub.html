@@ -64,13 +64,25 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
     <div id="portalOrderList" class="space-y-3"></div>
   </div>
 
-  <div class="pt-2 text-center">
-    <a href="https://p.ecpay.com.tw/54C54C6" target="_blank" class="inline-block text-[11px] font-bold text-red-800/90 hover:text-accent border-b border-dashed border-red-800/50 transition-colors leading-relaxed">
-      💡 備用刷卡提示：若上方按鈕因瀏覽器不支援而無法跳轉，可點我使用【緊急定額付款通道】。
+  <div class="pt-4 border-t border-dashed border-secondary/30 space-y-3">
+    <a href="https://p.ecpay.com.tw/54C54C6" target="_blank" class="w-full bg-dark hover:bg-accent text-white font-bold py-3.5 px-6 rounded-2xl shadow-md transition-all duration-300 tracking-[0.12em] text-sm flex items-center justify-center gap-2 transform active:scale-95">
+      <i class="fas fa-credit-card"></i>
+      綠界線上刷卡付款入口
     </a>
-    <p class="text-[9px] text-dark/50 font-medium mt-1 px-2 leading-relaxed">
-      注意：此備用通道無法自動對帳，完款後請務必截圖回傳 LINE 告知管理團隊手動確立。
-    </p>
+    
+    <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-left">
+      <p class="text-[11.5px] text-red-800 font-bold leading-relaxed tracking-wide flex items-start gap-1">
+        <i class="fas fa-info-circle text-[11px] mt-0.5 flex-shrink-0"></i>
+        <span>💡 刷卡提示：完款後請務必『截圖回傳 LINE 』告知管理團隊手動確立預約。</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="pt-2 text-center">
+    <a href="https://line.me/R/ti/p/@461szfnn" target="_blank" class="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-6 rounded-2xl shadow-sm transition-all tracking-[0.15em] text-xs flex items-center justify-center gap-2 transform active:scale-95">
+      <i class="fab fa-line text-lg"></i>
+      一鍵前往 WONDER SPA 官方 LINE 客服端
+    </a>
   </div>
 
 </main>
@@ -100,7 +112,6 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </div>
 
 <script>
-// 🎯 自動抓取當前發布的前台 GAS 母體網址
 const CONTAINER_URL = window.location.href.split('?')[0]; 
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwIGY8L774iM-U50uniLROYu_2I-T-osoV6xOYVk99CaQZt6kMRJmgnBhWhxvS35A5r/exec";
 
@@ -117,13 +128,13 @@ function searchPortalOrder() {
       const section = document.getElementById('portalResultSection');
       const list = document.getElementById('portalOrderList');
       if(res.success && res.history && res.history.length > 0) {
-        // 🎯 篩選出過往紀錄中「未付款」或「未付款(銀行轉帳)」的項目
         let unpaidItems = res.history.filter(h => h.status === '未付款' || h.status === '未付款(銀行轉帳)');
         if(unpaidItems.length === 0) {
-          list.innerHTML = `<p class="text-xs text-center text-dark/50 py-6 font-bold">✨ 目前此手機號碼沒有待付款的預約項目項目喔！</p>`;
+          list.innerHTML = `<p class="text-xs text-center text-dark/50 py-6 font-bold">✨ 目前此手機號碼沒有待付款的預約項目喔！</p>`;
           section.classList.remove('hidden'); return;
         }
         list.innerHTML = unpaidItems.map(h => {
+          // 🎯 核心更動：電話查詢結果卡片內只留下【回報轉帳五碼】按鈕，移除刷卡付款按鈕
           return `<div class="bg-surface p-4 rounded-xl border border-secondary/35 shadow-sm flex flex-col gap-2">
             <div class="flex justify-between font-bold text-dark border-b border-secondary/10 pb-2">
               <span>📅 ${h.date} ${h.time}</span>
@@ -133,9 +144,8 @@ function searchPortalOrder() {
               <span>${h.service} <span class="bg-secondary/20 px-1.5 py-0.5 rounded text-[10px] text-dark/80">${h.teacher}</span></span>
               <span class="font-bold text-dark text-sm">$${h.price}</span>
             </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <button type="button" onclick="openPortalRemit('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="bg-amber-600 text-white font-bold py-2 rounded-xl text-[11px] hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳五碼</button>
-              <button type="button" onclick="triggerPortalRepay(event, '${h.orderId}')" class="bg-dark text-white font-bold py-2 rounded-xl text-[11px] hover:bg-accent transition-all flex justify-center items-center gap-1"><i class="fas fa-credit-card"></i> 線上刷卡付款</button>
+            <div class="mt-1">
+              <button type="button" onclick="openPortalRemit('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="w-full bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳後五碼</button>
             </div>
           </div>`;
         }).join('');
@@ -168,25 +178,6 @@ function submitPortalFiveCode() {
       if(res.success) { Swal.fire('回報成功', '已通知店家核帳，確認後將發送 LINE 通知！', 'success').then(()=>{ closePortalModal(); searchPortalOrder(); }); }
       else { Swal.fire('回報失敗', res.message, 'error'); }
     }).catch(() => { btn.innerText = '提交核對'; btn.disabled = false; });
-}
-
-function triggerPortalRepay(event, orderId) {
-  const btn = event.currentTarget; const origText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
-  
-  fetch(`${GAS_WEB_APP_URL}?action=getPaymentFormForExistingOrder&orderId=${orderId}`)
-    .then(res => res.json())
-    .then(response => {
-      if(response.success) {
-        const div = document.createElement('div'); div.innerHTML = response.html; document.body.appendChild(div);
-        const ecpayForm = document.getElementById('ecpayForm');
-        if(ecpayForm) {
-          btn.innerHTML = '跳轉中...';
-          Swal.fire({ title: '🎉 付款通道已啟動', html: `系統正在為您安全轉接至綠界收銀台...`, icon: 'success', confirmButtonColor: '#7E6B5A', timer: 1500, timerProgressBar: true })
-            .then(() => { ecpayForm.target = '_self'; ecpayForm.submit(); });
-        }
-      } else { Swal.fire('啟動失敗', response.message, 'error'); btn.innerHTML = origText; btn.disabled = false; }
-    }).catch(() => { btn.innerHTML = origText; btn.disabled = false; });
 }
 </script>
 </body>
