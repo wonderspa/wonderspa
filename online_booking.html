@@ -30,7 +30,6 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </head>
 <body class="text-dark antialiased relative">
 
-<!-- 儲值回報彈窗 -->
 <div id="topUpModal" class="hidden fixed inset-0 bg-dark/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 <div class="bg-surface w-full max-w-sm rounded-[1.5rem] p-6 shadow-2xl relative fade-in">
 <button type="button" onclick="closeTopUpModal()" class="absolute top-4 right-4 text-dark/50 hover:text-dark"><i class="fas fa-times text-lg"></i></button>
@@ -53,7 +52,6 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 </div>
 </div>
 
-<!-- 轉帳匯款後五碼回報彈窗 -->
 <div id="remitReportModal" class="hidden fixed inset-0 bg-dark/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 <div class="bg-surface w-full max-w-sm rounded-[1.5rem] p-6 shadow-2xl relative fade-in">
 <button type="button" onclick="closeRemitModal()" class="absolute top-4 right-4 text-dark/50 hover:text-dark"><i class="fas fa-times text-lg"></i></button>
@@ -83,7 +81,6 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
   </div>
 </header>
 
-<!-- 🚀【電腦版滿頁改裝】：移除外層 main 的限制，將 max-w-[420px] 移至內層各個卡片容器上，完全對齊圖二的優雅大氣視覺 -->
 <main class="w-full px-4 py-6 flex flex-col items-center space-y-6">
 
 <div id="announcementContainer" class="w-full max-w-[420px] flex justify-center fade-in hidden mb-2">
@@ -97,7 +94,7 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 <h2 class="text-[15px] font-bold tracking-[0.1em] text-dark mb-1 relative z-10">Wonder SPA</h2>
 <p class="text-[10px] font-bold text-accent tracking-widest mb-6 relative z-10">  仕女按摩 · 肌肉帥哥按摩師  </p>
 <p class="text-dark/80 text-[12px] leading-[2.4] tracking-widest font-bold relative z-10">
-指尖下的親密對話 <br> 给肌膚最溫柔的奢華呵護 <br> 嚴選肌肉帥哥，40 小時培訓才可上工 <br> 忙碌生活中的小確幸，我們為情把關
+指尖下的親密對話 <br> 給肌膚最溫柔的奢華呵護 <br> 嚴選肌肉帥哥，40 小時培訓才可上工 <br> 忙碌生活中的小確幸，我們為你把關
 </p>
 <div class="w-[80%] h-[1px] bg-secondary/30 mx-auto my-6 relative z-10"></div>
 <p class="text-accent/80 text-[12px] tracking-widest serif-italic relative z-10 leading-relaxed">" In the sensory wander,<br>find the wonder within. "</p>
@@ -213,6 +210,10 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 <div id="availableMastersGrid" class="grid grid-cols-2 gap-2"></div>
 </div>
 
+<input type="hidden" name="bookDate" id="hiddenDate">
+<input type="hidden" name="bookTime" id="hiddenTime">
+<input type="hidden" name="finalMaster" id="hiddenMaster">
+
 <div class="pt-4 border-t border-secondary/20 mt-6">
 <label class="block text-[10px] font-bold text-dark/60 mb-1.5 pl-1">  折扣碼 DISCOUNT CODE  </label>
 <div class="flex gap-2">
@@ -297,7 +298,7 @@ tailwind.config = { theme: { extend: { colors: { primary: '#F5F1ED', secondary: 
 <div class="mt-4 p-3 bg-amber-50/80 border border-accent/20 rounded-xl text-left w-full box-border">
 <p class="text-[12px] text-amber-900 font-bold leading-relaxed tracking-wide flex items-start gap-1">
 <i class="fas fa-info-circle text-[11px] mt-0.5 opacity-90"></i>
-<span>小提示：預約成功後若因瀏覽器因素未成功跳轉，您亦可隨時至 LINE 輸入登記之電話，系統將自動為您推送專專屬完款對帳連結。</span>
+<span>小提示：預約成功後若因瀏覽器因素未成功跳轉，您亦可隨時至 LINE 輸入登記之電話，系統將自動為您推送專屬完款對帳連結。</span>
 </p>
 </div>
 </div>
@@ -464,7 +465,7 @@ function fetchCustomerProfile() {
         document.getElementById('historySection').classList.remove('hidden');
         document.getElementById('historyList').innerHTML = res.history.map(h => {
           let statusColor = h.status === '已完成' ? 'text-green-600' : (h.status === 'Macro_取消' || h.status === '已取消' ? 'text-red-400' : (h.status.includes('未付款') || h.status.includes('待核對') ? 'text-orange-500' : 'text-accent'));
-          let remitBtn = (h.status === '未付款' || h.status === '未付款(銀行轉帳)') ? `<button type="button" onclick="openRemitReportModal('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="mt-2 w-full bg-amber-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳後五碼</button>` : '';
+          let remitBtn = (h.status === '未付款' || h.status === '未付款(銀行轉帳)') ? `<button type="button" onclick="openRemitReportModal('${h.orderId}', '${h.date}', '${h.time}', '${h.teacher}')" class="mt-2 w-full bg-amber-600 text-white font-bold py-1.5 rounded-lg text-[11px\] hover:bg-amber-700 transition-all flex justify-center items-center gap-1"><i class="fas fa-university"></i> 回報轉帳後五碼</button>` : '';
           return `<div class="bg-surface p-3 rounded-xl border border-secondary/20 text-xs mb-2 shadow-sm flex flex-col gap-1.5"><div class="flex justify-between font-bold text-dark border-b border-secondary/10 pb-1.5"><span>📅 ${h.date} ${h.time}</span><span class="${statusColor}">${h.status}</span></div><div class="flex justify-between text-dark/70 items-center mt-1"><span class="truncate pr-2">${h.service} <span class="bg-secondary/20 px-1 rounded">${h.teacher}</span></span><span class="font-bold text-dark whitespace-nowrap">💰 $${h.price}</span></div>${remitBtn}</div>`;
         }).join('');
         Swal.fire({toast:true, position:'top', icon:'success', title: '已載入舊客資料', showConfirmButton:false, timer:1500});
@@ -502,10 +503,10 @@ function calculateFinalPrice() {
 
 function applyCoupon() {
   const code = document.getElementById('couponCode').value.trim(); const msgDiv = document.getElementById('couponMessage'); const applyBtn = document.getElementById('applyCouponBtn'); const selectedService = document.getElementById('serviceSelect').value;
-  if (currentOriginalPrice <= 0) { msgDiv.innerHTML = "⚠️ 請先選擇服務項目"; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold"; return; }
-  if (!code) { msgDiv.innerHTML = "⚠️ 請輸入折扣碼"; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold"; currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI(); return; }
+  if (currentOriginalPrice <= 0) { msgDiv.innerHTML = "⚠️ 請先選擇服務項目"; msgDiv.className = "text-[11px\] mt-2 text-red-700 block font-bold"; return; }
+  if (!code) { msgDiv.innerHTML = "⚠️ 請輸入折扣碼"; msgDiv.className = "text-[11px\] mt-2 text-red-700 block font-bold"; currentCouponDiscount = 0; calculateFinalPrice(); resetCouponUI(); return; }
   applyBtn.innerText = "驗證中"; applyBtn.disabled = true; applyBtn.classList.add('opacity-70');
-  fetchFromGAS('validateCouponCode', { code: code, price: currentOriginalPrice, service: selectedService }).then(res => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); if (res.success) { msgDiv.innerHTML = "✅ " + res.message; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = res.discountAmount; calculateFinalPrice(); } else { msgDiv.innerHTML = "❌ " + res.message; msgDiv.className = "text-[11px] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = 0; calculateFinalPrice(); } }).catch(() => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); });
+  fetchFromGAS('validateCouponCode', { code: code, price: currentOriginalPrice, service: selectedService }).then(res => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); if (res.success) { msgDiv.innerHTML = "✅ " + res.message; msgDiv.className = "text-[11px\] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = res.discountAmount; calculateFinalPrice(); } else { msgDiv.innerHTML = "❌ " + res.message; msgDiv.className = "text-[11px\] mt-2 text-red-700 block font-bold tracking-wide"; currentCouponDiscount = 0; calculateFinalPrice(); } }).catch(() => { applyBtn.innerText = "套用"; applyBtn.disabled = false; applyBtn.classList.remove('opacity-70'); });
 }
 
 function hasAvailableTime(dateStr, serviceName) {
@@ -528,7 +529,7 @@ function selectDate(element, dateStr) {
     const master = document.getElementById('masterSelect').value; const mySlots = globalSlots.filter(s => s.date === dateStr && s.master === master).map(s => s.time);
     validSlots = mySlots.filter(slotTime => { if (dateStr === todayFormatted) { let cleanDateStr = dateStr.replace(/-/g, '/'); let slotDateTime = new Date(cleanDateStr + ' ' + slotTime); if (!isNaN(slotDateTime.getTime())) { if (slotDateTime.getTime() <= nowTimestamp) return false; let currentLimit = window.leadTimeLimitMinutes || 60; let timeDiffMinutes = (slotDateTime.getTime() - nowTimestamp) / (1000 * 60); if (timeDiffMinutes < currentLimit) return false; } } let reqStart = timeToMinutes(slotTime); let reqEnd = reqStart + requiredDuration; for (let min = reqStart; min < reqEnd; min += 10) { let overlapCount = 0; let masterBusy = false; for (let j = 0; j < bookedIntervals.length; j++) { if (min >= bookedIntervals[j].start && min < bookedIntervals[j].end) { overlapCount++; if (bookedIntervals[j].teacher === master) masterBusy = true; } } if (overlapCount >= MAX_ROOMS || masterBusy) return false; } return true; });
   } else {
-    // 🎯【看空檔大腦修復】：完美修正看空檔模式下，時段無法過濾與過期時段不消失的拼字死結！
+    // 🎯【看空檔精密縫合】：完美修復看空檔模式下，時段過期不消失與欄位交叉死鎖的底層邏輯
     let validMastersForService = globalServices.filter(s => s.name === serviceName).map(s => s.teacher); if(validMastersForService.includes('共用')) validMastersForService = Array.from(new Set(globalServices.map(s=>s.teacher)));
     let allSlotsToday = globalSlots.filter(s => s.date === dateStr); 
     allSlotsToday.forEach(slot => { 
@@ -555,7 +556,7 @@ function selectDate(element, dateStr) {
 function renderAvailableSlots(slots) { const container = document.getElementById('timeSlotsGrid'); container.innerHTML = ''; slots.sort().forEach(time => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = "time-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = time; btn.onclick = function() { if (selectedTimeBtn) { selectedTimeBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedTimeBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); } this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent'); selectedTimeBtn = this; document.getElementById('hiddenTime').value = this.textContent; if (bookingMode === 'time') renderAvailableMasters(this.textContent); }; container.appendChild(btn); }); }
 function renderAvailableMasters(time) { const section = document.getElementById('availableMastersSection'); const container = document.getElementById('availableMastersGrid'); section.classList.remove('hidden'); container.innerHTML = ''; document.getElementById('hiddenMaster').value = ''; const masters = timeMasterMap[time] || []; masters.forEach(m => { const btn = document.createElement('button'); btn.type = 'button'; let displayName = staffMap[m] || m; btn.className = "master-btn bg-inputbg border border-secondary/30 rounded-xl py-2 text-sm text-dark transition-all font-bold"; btn.innerText = displayName; btn.onclick = function() { if (selectedMasterBtn) { selectedMasterBtn.classList.remove('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn.classList.add('bg-inputbg', 'text-dark', 'border-secondary/30'); } this.classList.remove('bg-inputbg', 'text-dark', 'border-secondary/30'); this.classList.add('bg-accent', 'text-white', 'border-accent'); selectedMasterBtn = this; document.getElementById('hiddenMaster').value = m; }; container.appendChild(btn); }); }
 
-// 🚀【圖二終極防禦鎖】：在按下按鈕的第一時間強行攔截所有未填欄位，絕不允許空白單穿透到試算表中！
+// 🚀【圖二核心安全加固攔截鎖】：保證任何漏填的空白項目 100% 原地攔截，永不穿透！
 function submitForm() {
   const btn = document.getElementById('submitBtn');
   if (btn.classList.contains('is-processing')) return;
@@ -568,7 +569,6 @@ function submitForm() {
   const checkName = document.querySelector('input[name="userName"]').value.trim();
   const checkLine = document.querySelector('input[name="lineName"]').value.trim();
 
-  // 🎯 只要發現有任何一欄是空的，直接原地拋出圖二警告，徹底消滅「亂抓師傅」的惡夢
   if (!checkMaster || !checkDate || !checkTime || !checkService || !checkPhone || !checkName || !checkLine) {
     Swal.fire({
       title: '請先填寫資料',
@@ -589,7 +589,7 @@ function submitForm() {
       userPhone: checkPhone, userName: checkName, lineName: checkLine, master: checkMaster,
       bookDate: checkDate, bookTime: checkTime, mainService: checkService, originalPrice: currentOriginalPrice, 
       couponCode: document.getElementById('couponCode').value.trim(), useWallet: useWallet,
-      paymentMethod: 'REMIT' // 配合全鎖定政策，一律發送鎖位暫存要求
+      paymentMethod: 'REMIT' // 全鎖保護下，統一先以未付款模式提交
     };
 
     btn.classList.add('is-processing');
@@ -609,7 +609,7 @@ function submitForm() {
                     <p class="h-px bg-secondary/20 my-1"></p>
                     <p>為了防範惡意放鳥，本館採用<b>【安全鎖位機制】</b>。</p>
                     <p class="text-red-600 font-bold">請點擊下方按鈕加入官方 LINE 帳號，並在對話框中「輸入您的手機號碼」綁定，系統將自動為您推送【專屬線上刷卡連結】與【轉帳匯款帳號】！</p>
-                    <p class="text-dark/50 text-[10px] mt-2 block text-center">※ 請於 30 分鐘內完成，逾時系統將自動釋放時段 ※</p>
+                    <p class="text-dark/50 text-[10px\] mt-2 block text-center">※ 請於 30 分鐘內完成，逾時系統將自動釋放時段 ※</p>
                    </div>`,
             icon: 'success',
             showCancelButton: false,
